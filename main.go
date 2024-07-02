@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,14 +20,17 @@ func init() {
 	pass := os.Getenv("MYSQL_ROOT_PASSWORD")
 	dbname := os.Getenv("MYSQL_DATABASE")
 
-	dsn := fmt.Sprintf("root:%s@tcp(mysql)/%s?parseTime=True", pass, dbname)
+	dsn := fmt.Sprintf("root:%s@tcp(127.0.0.1:3306)/%s?parseTime=True", pass, dbname)
 	client, err := ent.Open("mysql", dsn)
 	if err != nil {
 		log.Fatalf("failed opening connection to mysql: %+v", err)
 	}
 	defer client.Close()
 
-	log.Println("ent running")
+	ctx := context.Background()
+	if err := client.Debug().Schema.Create(ctx); err != nil {
+		log.Fatalf("failed creating schema: %+v", err)
+	}
 }
 
 func main() {
